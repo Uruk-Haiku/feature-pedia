@@ -1,5 +1,6 @@
 import requests
 import spacy
+import json
 from bs4 import BeautifulSoup
 
 #####################################################################
@@ -359,9 +360,10 @@ def get_featured_article_titles():
   return featured_dictionary, featured_list
 
 
-def get_article_titles(num_articles, featured_dictionary):
+def get_regular_article_titles(num_articles, featured_dictionary):
   """Get num_artciles article titles on Wikipedia.
   """
+  i = 0
   article_dictionary = {}
   article_list = []
 
@@ -381,6 +383,11 @@ def get_article_titles(num_articles, featured_dictionary):
     if title not in article_dictionary and title not in featured_dictionary:
       article_dictionary[title] = 0
       article_list.append(title)
+
+    # print the number of articles retrieved so far.
+    if i % 100 == 0:
+      print("Retrieved %d articles" %(i))
+    i += 1
 
   return article_dictionary, article_list
 
@@ -414,22 +421,33 @@ def text_processing(text):
   return len(list(doc.sents))
 
 
+#####################################################################
+#                       SAVING DATA COLLECTION                      #
+#####################################################################
+def save_list_to_file(filename, lst):
+  """Save a Python list in JSON format to a file.
+  """
+  with open(filename, "w") as fp:
+    json.dump(lst, fp)
+
+
+def read_list_from_file(filename):
+  """Read in a list from a file into Python.
+  """
+  with open(filename, 'rb') as fp:
+    lst = json.load(fp)
+    return lst
+
+
 if __name__ == "__main__":
-  # get all of the featured article titles.
-  featured_dictionary, featured_list = get_featured_article_titles()
+  # 1. Save all of the articles being used for this machine learning model.
+  # 1.1 Get all of the featured article titles and save them to a file.
+  # featured_dictionary, featured_list = get_featured_article_titles()
+  # save_list_to_file("titles_featured.json", featured_list)
 
-  # get all of the normal article titles.
-  article_dictionary, article_list = get_article_titles(100, featured_dictionary)
-  print(article_list)
+  # 1.2 Get all of the regular article titles and save them to a file.
+  # regular_dictionary, regular_list = get_regular_article_titles(10000, lst)
+  # save_list_to_file("titles_regular.json", regular_list)
 
-  # dataset = []
-
-  # print(articles)
-
-  # for article in articles:
-  #   dataset.append(get_article_data(article))
-
-  # print(len(dataset))
-  
-  # data = get_article_images(articles[0])
-  # print(data)
+  regular_titles = read_list_from_file("titles_regular.json")
+  print(len(regular_titles))
