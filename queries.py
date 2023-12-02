@@ -2,6 +2,7 @@ import requests
 import spacy
 import json
 from bs4 import BeautifulSoup
+import random
 
 #####################################################################
 #                       ARTICLE FEATURES                            #
@@ -102,7 +103,7 @@ def get_article_sections(title):
   }
 
   r = requests.get("https://en.wikipedia.org/w/api.php", params=payload)
-  return r.json()['parse']['sections']
+  return len(r.json()['parse']['sections'])
 
 
 def get_article_references(title):
@@ -397,15 +398,17 @@ def get_article_data(title):
   """
   article = {}
 
+  # Add 1 if featured, 0 if regular
   article['categories'] = get_article_categories(title)
   article['contributors'] = get_article_contributors(title)
   article['images'] = get_article_images(title)
-  article['links'] = get_article_links(title)
+  article['links'], article['iwlinks'], article['extlinks'] = get_article_links(title)
   article['links to article'] = get_links_to_article(title)
   article['page views'] = get_article_views(title)
   article['redirects'] = get_article_redirects(title)
   article['revisions'] = get_article_revisions(title)
-  article['text'], article['length'] = get_article_text(title)
+  # find a way to numerically represent the text (using spaCy?)
+  # article['text'], article['length'] = get_article_text(title)
   article['sections'] = get_article_sections(title)
   article['references'] = get_article_references(title)
 
@@ -449,5 +452,11 @@ if __name__ == "__main__":
   # regular_dictionary, regular_list = get_regular_article_titles(10000, lst)
   # save_list_to_file("titles_regular.json", regular_list)
 
+  # Test if the data collection for a single article works
   regular_titles = read_list_from_file("titles_regular.json")
-  print(len(regular_titles))
+
+  i = random.randrange(10000)
+
+  for i in range(100):
+    data = get_article_data(regular_titles[i])
+    print(data)
