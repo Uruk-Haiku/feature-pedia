@@ -2,33 +2,9 @@ import requests
 import spacy
 from bs4 import BeautifulSoup
 
-def get_all_featured_articles():
-  """Get all of the featured articles on Wikipedia.
-  """
-  featured_articles = []
-
-  payload = {
-    "action": "query",
-    "format": "json",
-    "list": "categorymembers",
-    "cmtitle": "Category:Featured articles",
-    "cmlimit": "max"
-  }
-
-  # Make the first request to grab all of the featured articles on the first page.
-  r = requests.get("https://en.wikipedia.org/w/api.php", params=payload)
-  featured_articles.extend(article['title'] for article in r.json()['query']['categorymembers'])
-
-  # Make a request for all subsequent pages to grab the rest of the featured articles.
-  while 'continue' in r.json():
-    payload['cmcontinue'] = r.json()['continue']['cmcontinue']
-
-    r = requests.get("https://en.wikipedia.org/w/api.php", params=payload)
-    featured_articles.extend(article['title'] for article in r.json()['query']['categorymembers'])
-
-  return featured_articles
-
-
+#####################################################################
+#                       ARTICLE FEATURES                            #
+#####################################################################
 def get_article_categories(title):
   """Get the number of the categories this article belongs to.
   """
@@ -95,7 +71,7 @@ def get_article_contributors(title):
 
 
 def get_article_text(title):
-  """Get the content (text) for this article.
+  """Get the content (text) and the length of this article.
   """
   payload = {
       "action": "query",
@@ -172,7 +148,7 @@ def get_article_images(title):
 
 
 def get_article_links(title):
-  """Get the number of all links, external links, and internal links of this article.
+  """Get the number of links, external links, and internal links of this article.
   """
   links = 0
   extlinks = 0
@@ -262,7 +238,7 @@ def get_links_to_article(title):
   return linkshere
 
 
-def get_article_page_views(title):
+def get_article_views(title):
   """Get the number of page views for this article in the last 60 days.
   """
   pageviews = 0
@@ -286,7 +262,7 @@ def get_article_page_views(title):
   return pageviews
 
 
-def get_article_page_redirects(title):
+def get_article_redirects(title):
   """Get the number of pages that redirect to this article.
   """
   redirects = 0
@@ -318,7 +294,7 @@ def get_article_page_redirects(title):
   return redirects
 
 
-def get_article_page_revisions(title):
+def get_article_revisions(title):
   """Get the number of edits for this article.
   """
   revisions = 0
@@ -350,8 +326,67 @@ def get_article_page_revisions(title):
   return revisions
 
 
+#####################################################################
+#                        DATA COLLECTION                            #
+#####################################################################
+def get_featured_article_titles():
+  """Get all of the featured article titles on Wikipedia.
+  """
+  featured_dictionary = {}
+  featured_list = []
+
+  payload = {
+    "action": "query",
+    "format": "json",
+    "list": "categorymembers",
+    "cmtitle": "Category:Featured articles",
+    "cmlimit": "max"
+  }
+
+  # Make the first request to grab all of the featured articles on the first page.
+  r = requests.get("https://en.wikipedia.org/w/api.php", params=payload)
+  featured_list.extend(article['title'] for article in r.json()['query']['categorymembers'])
+  featured_dictionary.update({article['title']:1 for article in r.json()['query']['categorymembers']})
+
+  # Make a request for all subsequent pages to grab the rest of the featured articles.
+  while 'continue' in r.json():
+    payload['cmcontinue'] = r.json()['continue']['cmcontinue']
+
+    r = requests.get("https://en.wikipedia.org/w/api.php", params=payload)
+    featured_list.extend(article['title'] for article in r.json()['query']['categorymembers'])
+    featured_dictionary.update({article['title']:1 for article in r.json()['query']['categorymembers']})
+
+  return featured_dictionary, featured_list
+
+
+def get_article_titles(num_articles, featured_dictionary):
+  """Get num_artciles article titles on Wikipedia.
+  """
+  article_dictionary = {}
+  article_list = []
+
+  payload = {
+    'action': 'query',
+    'format': 'json',
+    'list': 'random',
+    'rnnamespace': 0  # 0 for articles
+  }
+
+  while len(article_list) != num_articles:
+    # Make the request to grab the article title.
+    r = requests.get("https://en.wikipedia.org/w/api.php", params=payload)
+    title = r.json()['query']['random'][0]['title']
+
+    # Check if the article is not a duplicate and not featured.
+    if title not in article_dictionary and title not in featured_dictionary:
+      article_dictionary[title] = 0
+      article_list.append(title)
+
+  return article_dictionary, article_list
+
+
 def get_article_data(title):
-  """Get all the necessary data about an article.
+  """Get all the necessary data about a single Wikipedia article.
   """
   article = {}
 
@@ -360,9 +395,9 @@ def get_article_data(title):
   article['images'] = get_article_images(title)
   article['links'] = get_article_links(title)
   article['links to article'] = get_links_to_article(title)
-  article['page views'] = get_article_page_views(title)
-  article['redirects'] = get_article_page_redirects(title)
-  article['revisions'] = get_article_page_revisions(title)
+  article['page views'] = get_article_views(title)
+  article['redirects'] = get_article_redirects(title)
+  article['revisions'] = get_article_revisions(title)
   article['text'], article['length'] = get_article_text(title)
   article['sections'] = get_article_sections(title)
   article['references'] = get_article_references(title)
@@ -379,38 +414,22 @@ def text_processing(text):
   return len(list(doc.sents))
 
 
-def get_article_titles():
-  """Get article titles from Wikipedia.
-  """
-  # change when we actually get dataset
-  num = 10
-  articles = []
-
-  payload = {
-    'action': 'query',
-    'format': 'json',
-    'list': 'random',
-    'rnnamespace': 0,  # 0 for articles
-    'rnlimit': num   # Number of random articles
-  }
-
-  # Make the request to grab article titles.
-  r = requests.get("https://en.wikipedia.org/w/api.php", params=payload)
-  articles.extend(article['title'] for article in r.json()['query']['random'])
-
-  return articles
-
-
 if __name__ == "__main__":
-  # featured_articles = get_all_featured_articles()
-  articles = get_article_titles()
+  # get all of the featured article titles.
+  featured_dictionary, featured_list = get_featured_article_titles()
 
-  dataset = []
+  # get all of the normal article titles.
+  article_dictionary, article_list = get_article_titles(100, featured_dictionary)
+  print(article_list)
 
-  for article in articles:
-    dataset.append(get_article_data(article))
+  # dataset = []
 
-  print(len(dataset))
+  # print(articles)
+
+  # for article in articles:
+  #   dataset.append(get_article_data(article))
+
+  # print(len(dataset))
   
   # data = get_article_images(articles[0])
   # print(data)
