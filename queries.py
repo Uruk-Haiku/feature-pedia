@@ -7,6 +7,7 @@ from unidecode import unidecode
 import torch
 import torchtext
 import time
+import csv
 
 
 #####################################################################
@@ -521,15 +522,29 @@ if __name__ == "__main__":
     # regular_dictionary, regular_list = get_regular_article_titles(10000, lst)
     # save_list_to_file("titles_regular.json", regular_list)
 
-    regular_titles = read_list_from_file("titles_featured.json")
+    # 2. Get all of the data for all of the articles being used.
+    # 2.1 Get the data for all of the featured articles and save them to a file.
+    featured_titles = read_list_from_file("titles_featured.json")
 
-    # Test if the data collection for a single article works
-    # regular_titles = read_list_from_file("titles_regular.json")
+    with open('data_featured.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
 
-    # i = random.randrange(10000)
+        for i in range(len(featured_titles)):
+            writer.writerow(get_article_data(featured_titles[i]))
 
-    # for i in range(10000):
-    #     data = get_article_data(regular_titles[i])
+            # print to show how the process is going.
+            if i % 100 == 0:
+                print("Retrieved %d articles" % (i))
 
-    #     print("Article: " + data['text'])
-    #     print(data['embedding'])
+    # 2.2 Get the data for all of the regular articles and save them to a file.
+    regular_titles = read_list_from_file("titles_regular.json")
+
+    with open('data_regular.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+
+        for i in range(len(regular_titles)):
+            writer.writerow(get_article_data(regular_titles[i]))
+
+            # print to show how the process is going.
+            if i % 100 == 0:
+                print("Retrieved %d articles" % (i))
