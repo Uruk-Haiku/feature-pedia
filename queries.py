@@ -6,6 +6,7 @@ import random
 from unidecode import unidecode
 import torch
 import torchtext
+import time
 
 
 #####################################################################
@@ -13,8 +14,8 @@ import torchtext
 #####################################################################
 def get_article_categories(title):
     """Get the number of the categories this article belongs to.
-  """
-    categories = 0
+    """
+    categories = 0.0
 
     payload = {
         "action": "query",
@@ -28,7 +29,7 @@ def get_article_categories(title):
     pageid = next(iter(r.json()['query']['pages']))
     data = r.json()['query']['pages'][pageid]
 
-    categories += len(data['categories']) if 'categories' in data else 0
+    categories += len(data['categories']) if 'categories' in data else 0.0
 
     # Make a request for all subsequent pages to grab the rest of the contributors.
     while 'continue' in r.json():
@@ -44,8 +45,8 @@ def get_article_categories(title):
 
 def get_article_contributors(title):
     """Get the number of contributors for this article.
-  """
-    contributors = 0
+    """
+    contributors = 0.0
 
     payload = {
         "action": "query",
@@ -60,8 +61,8 @@ def get_article_contributors(title):
     pageid = next(iter(r.json()['query']['pages']))
     data = r.json()['query']['pages'][pageid]
 
-    contributors += data['anoncontributors'] if 'anoncontributors' in data else 0
-    contributors += len(data['contributors']) if 'contributors' in data else 0
+    contributors += data['anoncontributors'] if 'anoncontributors' in data else 0.0
+    contributors += len(data['contributors']) if 'contributors' in data else 0.0
 
     # Make a request for all subsequent pages to grab the rest of the contributors.
     while 'continue' in r.json():
@@ -77,7 +78,7 @@ def get_article_contributors(title):
 
 def get_article_text(title):
     """Get the content (text) and the length of this article.
-  """
+    """
     payload = {
         "action": "query",
         "format": "json",
@@ -92,12 +93,14 @@ def get_article_text(title):
     pageid = next(iter(r.json()['query']['pages']))
     data = r.json()['query']['pages'][pageid]
 
-    return data['extract'], data['length']
+    return data['extract'], float(data['length'])
 
 
 def get_article_sections(title):
     """Get the article section information of this article.
-  """
+    """
+    sections = 0.0
+
     payload = {
         'action': 'parse',
         'page': title,
@@ -106,24 +109,28 @@ def get_article_sections(title):
     }
 
     r = requests.get("https://en.wikipedia.org/w/api.php", params=payload)
-    return len(r.json()['parse']['sections'])
+    sections += len(r.json()['parse']['sections'])
+
+    return sections
 
 
 def get_article_references(title):
     """Get the number of references for this article.
-  """
-    article_title = title.replace(' ', '_')
+    """
+    references = 0.0
 
+    article_title = title.replace(' ', '_')
     page = requests.get(f'https://en.wikipedia.org/wiki/{article_title}')
     soup = BeautifulSoup(page.content, 'html.parser')
+    references += len(soup.find_all('span', attrs={'class': 'reference-text'}))
 
-    return len(soup.find_all('span', attrs={'class': 'reference-text'}))
+    return references
 
 
 def get_article_images(title):
     """Get the number of images this article has.
-  """
-    images = 0
+    """
+    images = 0.0
 
     payload = {
         "action": "query",
@@ -138,7 +145,7 @@ def get_article_images(title):
     pageid = next(iter(r.json()['query']['pages']))
     data = r.json()['query']['pages'][pageid]
 
-    images += len(data['images']) if 'images' in data else 0
+    images += len(data['images']) if 'images' in data else 0.0
 
     # Make a request for all subsequent pages to grab the rest of the contributors.
     while 'continue' in r.json():
@@ -154,16 +161,16 @@ def get_article_images(title):
 
 def get_article_links(title):
     """Get the number of links, external links, and internal links of this article.
-  """
-    links = 0
-    extlinks = 0
-    iwlinks = 0
+    """
+    links = 0.0
+    extlinks = 0.0
+    iwlinks = 0.0
 
     payload = {
         "action": "query",
         "format": "json",
         "titles": title,
-        "prop": "links|iwlinks|extlinks",
+        "prop": "links|extlinks|iwlinks",
         "pllimit": "max",
         "iwlimit": "max",
         "ellimit": "max"
@@ -174,27 +181,27 @@ def get_article_links(title):
     pageid = next(iter(r.json()['query']['pages']))
     data = r.json()['query']['pages'][pageid]
 
-    links += len(data['links']) if 'links' in data else 0
-    iwlinks += len(data['iwlinks']) if 'iwlinks' in data else 0
-    extlinks += len(data['extlinks']) if 'extlinks' in data else 0
+    links += len(data['links']) if 'links' in data else 0.0
+    extlinks += len(data['extlinks']) if 'extlinks' in data else 0.0
+    iwlinks += len(data['iwlinks']) if 'iwlinks' in data else 0.0
 
     # Make a request for all subsequent pages to grab the rest of the contributors.
     while 'continue' in r.json():
         addLinks = False
-        addIwLinks = False
         addExtLinks = False
+        addIwLinks = False
 
         if 'plcontinue' in r.json()['continue']:
             payload['plcontinue'] = r.json()['continue']['plcontinue']
             addLinks = True
 
-        if 'iwcontinue' in r.json()['continue']:
-            payload['iwcontinue'] = r.json()['continue']['iwcontinue']
-            addIwLinks = True
-
         if 'elcontinue' in r.json()['continue']:
             payload['elcontinue'] = r.json()['continue']['elcontinue']
             addExtLinks = True
+
+        if 'iwcontinue' in r.json()['continue']:
+            payload['iwcontinue'] = r.json()['continue']['iwcontinue']
+            addIwLinks = True
 
         r = requests.get("https://en.wikipedia.org/w/api.php", params=payload)
         data = r.json()['query']['pages'][pageid]
@@ -202,19 +209,19 @@ def get_article_links(title):
         if addLinks:
             links += len(data['links'])
 
-        if addIwLinks:
-            iwlinks += len(data['iwlinks'])
-
         if addExtLinks:
             extlinks += len(data['extlinks'])
 
-    return links, iwlinks, extlinks
+        if addIwLinks:
+            iwlinks += len(data['iwlinks'])
+
+    return links, extlinks, iwlinks
 
 
 def get_links_to_article(title):
     """Get the number of articles that link to this article
-  """
-    linkshere = 0
+    """
+    linkshere = 0.0
 
     payload = {
         "action": "query",
@@ -229,7 +236,7 @@ def get_links_to_article(title):
     pageid = next(iter(r.json()['query']['pages']))
     data = r.json()['query']['pages'][pageid]
 
-    linkshere += len(data['linkshere']) if 'linkshere' in data else 0
+    linkshere += len(data['linkshere']) if 'linkshere' in data else 0.0
 
     # Make a request for all subsequent pages to grab the rest of the contributors.
     while 'continue' in r.json():
@@ -245,8 +252,8 @@ def get_links_to_article(title):
 
 def get_article_views(title):
     """Get the number of page views for this article in the last 60 days.
-  """
-    pageviews = 0
+    """
+    pageviews = 0.0
 
     payload = {
         "action": "query",
@@ -262,15 +269,15 @@ def get_article_views(title):
 
     for date in data['pageviews']:
         views = data['pageviews'][date]
-        pageviews += views if type(views) == int else 0
+        pageviews += views if type(views) == int else 0.0
 
     return pageviews
 
 
 def get_article_redirects(title):
     """Get the number of pages that redirect to this article.
-  """
-    redirects = 0
+    """
+    redirects = 0.0
 
     payload = {
         "action": "query",
@@ -285,7 +292,7 @@ def get_article_redirects(title):
     pageid = next(iter(r.json()['query']['pages']))
     data = r.json()['query']['pages'][pageid]
 
-    redirects += len(data['redirects']) if 'redirects' in data else 0
+    redirects += len(data['redirects']) if 'redirects' in data else 0.0
 
     # Make a request for all subsequent pages to grab the rest of the contributors.
     while 'continue' in r.json():
@@ -301,8 +308,8 @@ def get_article_redirects(title):
 
 def get_article_revisions(title):
     """Get the number of edits for this article.
-  """
-    revisions = 0
+    """
+    revisions = 0.0
 
     payload = {
         "action": "query",
@@ -317,7 +324,7 @@ def get_article_revisions(title):
     pageid = next(iter(r.json()['query']['pages']))
     data = r.json()['query']['pages'][pageid]
 
-    revisions += len(data['revisions']) if 'revisions' in data else 0
+    revisions += len(data['revisions']) if 'revisions' in data else 0.0
 
     # Make a request for all subsequent pages to grab the rest of the contributors.
     while 'continue' in r.json():
@@ -331,12 +338,51 @@ def get_article_revisions(title):
     return revisions
 
 
+def get_article_sentences(text):
+    """Get the number of sentences in this article.
+    """
+    sentences = 0.0
+
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp(text)
+    sentences += len(list(doc.sents))
+
+    return sentences
+
+
+def get_article_embedding(text):
+    """Get the article's embedding vector.
+    """
+    # processing
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp(text)
+
+    # TODO determine preprocessing methods
+    filtered_tokens = [unidecode(token.lemma_.lower()) for token in doc if
+                       not (token.is_stop or token.is_punct or token.is_space)]  # Remove crap
+
+    # Torch
+    dim = 100  # TODO HYPER PARAMETER
+    glove = torchtext.vocab.GloVe(name="6B",  # trained on Wikipedia 2014 corpus
+                                  dim=dim)  # Embedding size = 50
+    n = 0
+    accumulator = torch.zeros(dim)
+    for token in filtered_tokens:
+        accumulator += glove[token]
+        n += 1
+
+    # Average embedding vector for all the KEY words in the article.
+    embedding_vector = accumulator / n
+
+    return embedding_vector
+
+
 #####################################################################
 #                        DATA COLLECTION                            #
 #####################################################################
 def get_featured_article_titles():
     """Get all of the featured article titles on Wikipedia.
-  """
+    """
     featured_dictionary = {}
     featured_list = []
 
@@ -368,7 +414,7 @@ def get_featured_article_titles():
 
 def get_regular_article_titles(num_articles, featured_dictionary):
     """Get num_artciles article titles on Wikipedia.
-  """
+    """
     i = 0
     article_dictionary = {}
     article_list = []
@@ -398,65 +444,53 @@ def get_regular_article_titles(num_articles, featured_dictionary):
     return article_dictionary, article_list
 
 
-def get_article_embedding(text):
-    """Get the article's embedding vector.
-  """
-
-    # processing
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp(text)
-
-    # TODO determine preprocessing methods
-    filtered_tokens = [unidecode(token.lemma_.lower()) for token in doc if
-                       not (token.is_stop or token.is_punct or token.is_space)]  # Remove crap
-
-    # Torch
-    dim = 100  # TODO HYPER PARAMETER
-    glove = torchtext.vocab.GloVe(name="6B",  # trained on Wikipedia 2014 corpus
-                                  dim=dim)  # Embedding size = 50
-    n = 0
-    accumulator = torch.zeros(dim)
-    for token in filtered_tokens:
-        accumulator += glove[token]
-        n += 1
-
-    # Average embedding vector for all the KEY words in the article.
-    embedding_vector = accumulator / n
-
-    return embedding_vector
-
-
 def get_article_data(title):
-    """Get all the necessary data about a single Wikipedia article.
-  """
-    article = {}
+    """Get all the necessary features about a single Wikipedia article
+    and save it as a vector. The format is as follows:
 
-    # Add 1 if featured, 0 if regular
-    article['categories'] = get_article_categories(title)
-    article['contributors'] = get_article_contributors(title)
-    article['images'] = get_article_images(title)
-    article['links'], article['iwlinks'], article['extlinks'] = get_article_links(title)
-    article['links to article'] = get_links_to_article(title)
-    article['page views'] = get_article_views(title)
-    article['redirects'] = get_article_redirects(title)
-    article['revisions'] = get_article_revisions(title)
-    # find a way to numerically represent the text (using spaCy?)
-    article['text'], article['length'] = get_article_text(title)
-    article['sections'] = get_article_sections(title)
-    article['references'] = get_article_references(title)
+    [
+        0. categories
+        1. contributors
+        2. extlinks
+        3. images
+        4. iwlinks
+        5. length
+        6. links
+        7. links to article
+        8. views
+        9. redirects
+        10. references
+        11. revisions
+        12. sections
+        13. sentences
+        14 - 113. vector embedding
+    ]
+    """
+    article = []
 
-    article['embedding'] = get_article_embedding(article['text'])
+    # Get all of the multi-return values of this article.
+    links, extlinks, iwlinks = get_article_links(title)
+    text, length = get_article_text(title)
+    embedding_vector = get_article_embedding(text)
+
+    # Add all of the features to the article vector.
+    article.append(get_article_categories(title))
+    article.append(get_article_contributors(title))
+    article.append(extlinks)
+    article.append(get_article_images(title))
+    article.append(iwlinks)
+    article.append(length)
+    article.append(links)
+    article.append(get_links_to_article(title))
+    article.append(get_article_views(title))
+    article.append(get_article_redirects(title))
+    article.append(get_article_references(title))
+    article.append(get_article_revisions(title))
+    article.append(get_article_sections(title))
+    article.append(get_article_sentences(text))
+    article.extend(embedding_vector.tolist())
 
     return article
-
-
-def text_processing(text):
-    """analyze the text using SpaCy.
-  """
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp(text)
-
-    return len(list(doc.sents))
 
 
 #####################################################################
@@ -464,14 +498,14 @@ def text_processing(text):
 #####################################################################
 def save_list_to_file(filename, lst):
     """Save a Python list in JSON format to a file.
-  """
+    """
     with open(filename, "w") as fp:
         json.dump(lst, fp)
 
 
 def read_list_from_file(filename):
     """Read in a list from a file into Python.
-  """
+    """
     with open(filename, 'rb') as fp:
         lst = json.load(fp)
         return lst
@@ -487,13 +521,15 @@ if __name__ == "__main__":
     # regular_dictionary, regular_list = get_regular_article_titles(10000, lst)
     # save_list_to_file("titles_regular.json", regular_list)
 
+    regular_titles = read_list_from_file("titles_featured.json")
+
     # Test if the data collection for a single article works
-    regular_titles = read_list_from_file("titles_regular.json")
+    # regular_titles = read_list_from_file("titles_regular.json")
 
-    i = random.randrange(10000)
+    # i = random.randrange(10000)
 
-    for i in range(10000):
-        data = get_article_data(regular_titles[i])
+    # for i in range(10000):
+    #     data = get_article_data(regular_titles[i])
 
-        print("Article: " + data['text'])
-        print(data['embedding'])
+    #     print("Article: " + data['text'])
+    #     print(data['embedding'])
