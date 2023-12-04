@@ -530,7 +530,7 @@ if __name__ == "__main__":
     # 2.1 Get the data for all of the featured articles and save them to a file.
     # featured_titles = read_list_from_file("titles_featured.json")
 
-    # with open('data_featured5.csv', 'w', newline='') as file:
+    # with open('articles_featured.csv', 'w', newline='') as file:
     #     writer = csv.writer(file)
 
     #     for i in range(len(featured_titles)):
@@ -543,7 +543,7 @@ if __name__ == "__main__":
     # 2.2 Get the data for all of the regular articles and save them to a file.
     # regular_titles = read_list_from_file("titles_regular.json")
 
-    # with open('data_regular5.csv', 'w', newline='') as file:
+    # with open('articles_regular.csv', 'w', newline='') as file:
     #     writer = csv.writer(file)
 
     #     for i in range(len(regular_titles)):
