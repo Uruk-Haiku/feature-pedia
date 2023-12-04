@@ -265,6 +265,10 @@ def get_article_views(title):
 
     # Make the first request to grab all of the links on the first page.
     r = requests.get("https://en.wikipedia.org/w/api.php", params=payload)
+
+    if 'error' in r.json():
+        return pageviews
+
     pageid = next(iter(r.json()['query']['pages']))
     data = r.json()['query']['pages'][pageid]
 
@@ -524,27 +528,43 @@ if __name__ == "__main__":
 
     # 2. Get all of the data for all of the articles being used.
     # 2.1 Get the data for all of the featured articles and save them to a file.
-    featured_titles = read_list_from_file("titles_featured.json")
+    # featured_titles = read_list_from_file("titles_featured.json")
 
-    with open('data_featured.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
+    # with open('data_featured5.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
 
-        for i in range(len(featured_titles)):
-            writer.writerow(get_article_data(featured_titles[i]))
+    #     for i in range(len(featured_titles)):
+    #         writer.writerow(get_article_data(featured_titles[i]))
 
-            # print to show how the process is going.
-            if i % 100 == 0:
-                print("Retrieved %d articles" % (i))
+    #         # print to show how the process is going.
+    #         if i % 100 == 0:
+    #             print("Retrieved %d articles" % (i))
 
     # 2.2 Get the data for all of the regular articles and save them to a file.
-    regular_titles = read_list_from_file("titles_regular.json")
+    # regular_titles = read_list_from_file("titles_regular.json")
 
-    with open('data_regular.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
+    # with open('data_regular5.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
 
-        for i in range(len(regular_titles)):
-            writer.writerow(get_article_data(regular_titles[i]))
+    #     for i in range(len(regular_titles)):
+    #         writer.writerow(get_article_data(regular_titles[i]))
 
-            # print to show how the process is going.
-            if i % 100 == 0:
-                print("Retrieved %d articles" % (i))
+    #         # print to show how the process is going.
+    #         if i % 100 == 0:
+    #             print("Retrieved %d articles" % (i))
+
+    # 3. Get all of the featured and regular article data into memory.
+    featured_articles = []
+    with open('articles_featured.csv', 'r', newline='') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            featured_articles.append(row)
+
+    regular_articles = []
+    with open('articles_regular.csv', 'r', newline='') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            regular_articles.append(row)
+
+    print("number of featured articles:", len(featured_articles))
+    print("number of regular articles:", len(regular_articles))
