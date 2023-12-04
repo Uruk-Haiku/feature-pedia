@@ -2,11 +2,9 @@ import requests
 import spacy
 import json
 from bs4 import BeautifulSoup
-import random
 from unidecode import unidecode
 import torch
 import torchtext
-import time
 import csv
 
 
