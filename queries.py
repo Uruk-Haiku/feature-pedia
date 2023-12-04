@@ -6,6 +6,10 @@ from unidecode import unidecode
 import torch
 import torchtext
 import csv
+import os
+import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
 
 
 #####################################################################
@@ -514,6 +518,39 @@ def read_list_from_file(filename):
         return lst
 
 
+def load_data():
+    """Load the data from the files and split it into sets for
+    training, validation, and testing.
+    """
+    # Ensure the files exist
+    if not os.path.isfile("data_featured.json") or not os.path.isfile("data_regular.json"):
+        raise Exception("Missing Data Files")
+
+    # Load
+    featured = read_list_from_file("data_featured.json")
+    regular = read_list_from_file("data_regular.json")
+
+    # Report
+    print("Loaded ", len(featured), " FEATURED articles")
+    print("Loaded ", len(regular), " REGULAR articles")
+
+    # Split:    Training == 70%     Validation == 15%       Testing == 15%
+    data = np.array(regular + featured)
+    labels = np.array([0] * len(regular) + [1] * len(featured))  # Remember: reg == 0, feat == 1
+
+    training_data, valtest_data, training_labels, valtest_labels = \
+        train_test_split(data, labels, train_size=0.7)
+    validation_data, test_data, validation_labels, test_labels = \
+        train_test_split(valtest_data, valtest_labels, train_size=0.5)
+
+    # Return
+    return training_data, training_labels, \
+           validation_data, validation_labels, \
+           test_data, test_labels
+
+
+
+
 if __name__ == "__main__":
     # 1. Save all of the articles being used for this machine learning model.
     # 1.1 Get all of the featured article titles and save them to a file.
@@ -572,3 +609,16 @@ if __name__ == "__main__":
 
     print("number of featured articles:", len(featured))
     print("number of regular articles:", len(regular))
+
+    # TODO bens shit
+    training_data, training_labels, \
+    validation_data, validation_labels, \
+    test_data, test_labels = load_data()
+
+    print()
+    print("Ben's Testing")
+    print(len(training_data))
+    print(len(training_labels))
+    print()
+    print(test_data)
+    print(test_labels)

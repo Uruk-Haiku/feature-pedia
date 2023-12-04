@@ -49,11 +49,23 @@ def train():
                 best_hypers[1] = max_depth
                 best_hypers[2] = success_rate
 
+    # Test
+    classifier = DecisionTreeClassifier(criterion=best_hypers[0], max_depth=best_hypers[1])
+    classifier = classifier.fit(training_data, training_labels)
+    prediction = classifier.predict(test_data)
+
+    num_correct = 0
+    for k in range(len(prediction)):
+        if prediction[k] == validation_labels[k]:
+            num_correct += 1
+
+    success_rate = num_correct / len(prediction)
+
     # Report
     print()
     print("Best Hyperparameters >>> Criteria: " + best_hypers[0] +
           "  Max Depth: " + best_hypers[1] +
-          ".  Success Rate: " + best_hypers[2])
+          ".  Success Rate: " + success_rate)
 
     # Graph
 
