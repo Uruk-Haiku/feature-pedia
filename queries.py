@@ -549,8 +549,6 @@ def load_data():
            test_data, test_labels
 
 
-
-
 if __name__ == "__main__":
     # 1. Save all of the articles being used for this machine learning model.
     # 1.1 Get all of the featured article titles and save them to a file.
