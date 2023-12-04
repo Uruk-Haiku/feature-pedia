@@ -11,6 +11,9 @@ def train():
     """
     Train a decision tree model to guess whether an article is featured.
     """
+    # ========================== CHOOSE HYPERS ==========================
+    max_max_depth = 3
+    # ===================================================================
 
     training_data, training_labels, \
     validation_data, validation_labels, \
@@ -23,7 +26,7 @@ def train():
     best_hypers = [str, int, 0.]  # Store best criterion-max_depth-success_rate triplet
 
     # Graphing variables
-    depths = range(1, 5)
+    depths = range(1, max_max_depth)
     plotdata = {"gini": [], "entropy": [], "log_loss": []}
 
     for max_depth in depths:
@@ -41,7 +44,7 @@ def train():
 
             success_rate = num_correct / len(prediction)
             plotdata[criterion].append(success_rate)  # Append success rate
-            print("Results for criterion: " + criterion + " and maxdepth: " +
+            print("VALIDATION results for criterion: " + criterion + " and maxdepth: " +
                   str(max_depth) + " >>> " + " Success Rate == " +
                   str(success_rate))
 
@@ -64,11 +67,14 @@ def train():
 
     # Report
     print()
-    print("Best Hyperparameters >>> Criteria: " + str(best_hypers[0]) +
+    print("FINAL Best Hyperparameters >>> Criteria: " + str(best_hypers[0]) +
           "  Max Depth: " + str(best_hypers[1]) +
-          "  Success Rate: " + str(success_rate))
+          "  TEST Success Rate: " + str(success_rate))
 
-    # Graph
+    # Plot Tree
+    plot_tree(classifier)
+
+    # Graph Results
     fig, ax = plt.subplots()
     plot_gini, = ax.plot(plotdata["gini"], color='green', label='Gini')
     plot_entropy, = ax.plot(plotdata["entropy"], color='red', label='Entropy')
