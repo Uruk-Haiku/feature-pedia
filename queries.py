@@ -607,16 +607,3 @@ if __name__ == "__main__":
 
     print("number of featured articles:", len(featured))
     print("number of regular articles:", len(regular))
-
-    # TODO bens shit
-    training_data, training_labels, \
-    validation_data, validation_labels, \
-    test_data, test_labels = load_data()
-
-    print()
-    print("Ben's Testing")
-    print(len(training_data))
-    print(len(training_labels))
-    print()
-    print(test_data)
-    print(test_labels)

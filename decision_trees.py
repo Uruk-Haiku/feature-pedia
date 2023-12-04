@@ -85,9 +85,6 @@ def train():
     ax.set_title("Max Tree Depth vs. Success Rate per Criteria")
     ax.legend(handles=[plot_gini, plot_entropy, plot_log_loss])
 
-
-
-
     plt.show()
 
 
