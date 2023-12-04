@@ -552,17 +552,23 @@ if __name__ == "__main__":
     #             print("Retrieved %d articles" % (i))
 
     # 3. Get all of the featured and regular article data into memory.
-    featured_articles = []
-    with open('articles_featured.csv', 'r', newline='') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            featured_articles.append(row)
+    # featured_articles = []
+    # with open('articles_featured.csv', 'r', newline='') as file:
+    #     reader = csv.reader(file)
+    #     for row in reader:
+    #         featured_articles.append([float(value) for value in row])
 
-    regular_articles = []
-    with open('articles_regular.csv', 'r', newline='') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            regular_articles.append(row)
+    # regular_articles = []
+    # with open('articles_regular.csv', 'r', newline='') as file:
+    #     reader = csv.reader(file)
+    #     for row in reader:
+    #         regular_articles.append([float(value) for value in row])
 
-    print("number of featured articles:", len(featured_articles))
-    print("number of regular articles:", len(regular_articles))
+    # save_list_to_file("data_featured.json", featured_articles)
+    # save_list_to_file("data_regular.json", regular_articles)
+
+    featured = read_list_from_file("data_featured.json")
+    regular = read_list_from_file("data_regular.json")
+
+    print("number of featured articles:", len(featured))
+    print("number of regular articles:", len(regular))
