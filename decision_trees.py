@@ -6,6 +6,7 @@ from sklearn.tree import DecisionTreeClassifier, plot_tree, export_graphviz
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 
+
 def train():
     """
     Train a decision tree model to guess whether an article is featured.
@@ -13,7 +14,7 @@ def train():
 
     training_data, training_labels, \
     validation_data, validation_labels, \
-    test_data, test_labels = ...  # TODO data loader
+    test_data, test_labels = queries.load_data()
 
     # Evaluation Criteria
     criteria = ["gini", "entropy", "log_loss"]
@@ -22,7 +23,7 @@ def train():
     best_hypers = [str, int, 0.]  # Store best criterion-max_depth-success_rate triplet
 
     # Graphing variables
-    depths = range(10)
+    depths = range(1, 5)
     plotdata = {"gini": [], "entropy": [], "log_loss": []}
 
     for max_depth in depths:
@@ -55,7 +56,7 @@ def train():
     prediction = classifier.predict(test_data)
 
     num_correct = 0
-    for k in range(len(prediction)):
+    for k in range(len(prediction) - 1):
         if prediction[k] == validation_labels[k]:
             num_correct += 1
 
@@ -63,14 +64,25 @@ def train():
 
     # Report
     print()
-    print("Best Hyperparameters >>> Criteria: " + best_hypers[0] +
-          "  Max Depth: " + best_hypers[1] +
-          ".  Success Rate: " + success_rate)
+    print("Best Hyperparameters >>> Criteria: " + str(best_hypers[0]) +
+          "  Max Depth: " + str(best_hypers[1]) +
+          "  Success Rate: " + str(success_rate))
 
     # Graph
+    fig, ax = plt.subplots()
+    plot_gini, = ax.plot(plotdata["gini"], color='green', label='Gini')
+    plot_entropy, = ax.plot(plotdata["entropy"], color='red', label='Entropy')
+    plot_log_loss, = ax.plot(plotdata["log_loss"], color='blue', label='Log Loss')
+
+    ax.set_xlabel("Max Depth")
+    ax.set_ylabel("Success Rate")
+    ax.set_title("Max Tree Depth vs. Success Rate per Criteria")
+    ax.legend(handles=[plot_gini, plot_entropy, plot_log_loss])
 
 
 
+
+    plt.show()
 
 
 if __name__ == "__main__":
