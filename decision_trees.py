@@ -23,7 +23,7 @@ def train():
 
     # Graphing variables
     depths = range(10)
-    plotdata = []
+    plotdata = {"gini": [], "entropy": [], "log_loss": []}
 
     for max_depth in depths:
         for criterion in criteria:
@@ -37,6 +37,26 @@ def train():
             for k in range(len(prediction)):
                 if prediction[k] == validation_labels[k]:
                     num_correct += 1
+
+            success_rate = num_correct / len(prediction)
+            plotdata[criterion].append(success_rate)  # Append success rate
+            print("Results for criterion: " + criterion + " and maxdepth: " +
+                  str(max_depth) + " >>> " + " Success Rate == " +
+                  str(success_rate))
+
+            if success_rate > best_hypers[2]:
+                best_hypers[0] = criterion
+                best_hypers[1] = max_depth
+                best_hypers[2] = success_rate
+
+    # Report
+    print()
+    print("Best Hyperparameters >>> Criteria: " + best_hypers[0] +
+          "  Max Depth: " + best_hypers[1] +
+          ".  Success Rate: " + best_hypers[2])
+
+    # Graph
+
 
 
 
