@@ -12,7 +12,7 @@ def train():
     Train a decision tree model to guess whether an article is featured.
     """
     # ========================== CHOOSE HYPERS ==========================
-    max_max_depth = 3
+    max_max_depth = 100
     # ===================================================================
 
     training_data, training_labels, \
