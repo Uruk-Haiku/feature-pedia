@@ -59,6 +59,7 @@ def run_neural_network():
 
         # compare the results.
         if score > accuracy:
+          accuracy = score
           final_clf = model
           final_parameters["optimizer"] = optimizer_names[i]
           final_parameters["loss"] = losses[j]
