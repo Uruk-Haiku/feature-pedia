@@ -24,6 +24,7 @@ def run_logistic_regression():
   # Keep the model with highest average accuracy.
   accuracy = 0.0
   final_clf = None
+  final_parameters = {"solver": "", "penalty": "", "iteration": 0}
 
   # Perform Logistic Regression.
   for solver in solvers:
@@ -39,9 +40,12 @@ def run_logistic_regression():
         score = clf.score(valid_data, valid_labels)
         solvers[solver][penalty].append(score)
 
-        if iteration == 99 and score > accuracy:
+        if score > accuracy:
           accuracy = score
           final_clf = clf
+          final_parameters["solver"] = solver
+          final_parameters["penalty"] = penalty
+          final_parameters["iteration"] = iteration
 
   # Print out the final results.
   print("The accuracy using the max number (100) of iterations is:")
@@ -67,8 +71,9 @@ def run_logistic_regression():
 
   # Take the highest average accuracy and use that for testing.
   final_clf.fit(train_data, train_labels)
-  print("Final results on the testing set:", final_clf.score(test_data, test_labels))
-
+  print("The final results on the testing set is:", final_clf.score(test_data, test_labels))
+  print("The parameters are:")
+  print("Solver: %s\nPenalty: %s\nIteration: %d" %(final_parameters["solver"], final_parameters["penalty"], final_parameters["iteration"]))
 
   # plot the results
   plt.title("Mean Accuracy Using The lbfgs Solver")
